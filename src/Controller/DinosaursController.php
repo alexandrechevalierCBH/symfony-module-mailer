@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Dinosaur;
 use App\Form\Type\DinosaurType;
 use App\Form\Type\SearchType;
+use App\Service\Mailer;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,8 +30,7 @@ class DinosaursController extends AbstractController
 
         $dinosaurs = $doctrine
             ->getRepository(Dinosaur::class)
-            ->search($q)
-        ;
+            ->search($q);
 
         return $this->render('dinosaurs-list.html.twig', [
             'dinosaurs' => $dinosaurs,
@@ -47,8 +47,7 @@ class DinosaursController extends AbstractController
     {
         $dinosaur = $doctrine
             ->getRepository(Dinosaur::class)
-            ->find($id)
-        ;
+            ->find($id);
 
         if (false === $dinosaur) {
             throw $this->createNotFoundException('The dinosaur you are looking for does not exists.');
@@ -60,7 +59,7 @@ class DinosaursController extends AbstractController
     }
 
     #[Route('/dinosaurs/create', name: 'app_create_dinosaur')]
-    public function create(Request $request, ManagerRegistry $doctrine): Response
+    public function create(Request $request, ManagerRegistry $doctrine, Mailer $mailer): Response
     {
         $form = $this->createForm(DinosaurType::class);
 
@@ -75,11 +74,13 @@ class DinosaursController extends AbstractController
 
             $this->addFlash('success', 'The dinosaur has been created!');
 
+            $mailer->sendMailAfterDinosaurCreation($dinosaur->getName());
+
             return $this->redirectToRoute('app_list_dinosaurs');
         }
 
         return $this->renderForm('create-dinosaur.html.twig', [
-          'form' => $form,
+            'form' => $form,
         ]);
     }
 
@@ -92,8 +93,7 @@ class DinosaursController extends AbstractController
     {
         $dinosaur = $doctrine
             ->getRepository(Dinosaur::class)
-            ->find($id)
-        ;
+            ->find($id);
 
         if (false === $dinosaur) {
             throw $this->createNotFoundException('The dinosaur you are looking for does not exists.');
@@ -115,7 +115,7 @@ class DinosaursController extends AbstractController
         }
 
         return $this->renderForm('edit-dinosaur.html.twig', [
-          'form' => $form,
+            'form' => $form,
         ]);
     }
 
@@ -128,8 +128,7 @@ class DinosaursController extends AbstractController
     {
         $dinosaur = $doctrine
             ->getRepository(Dinosaur::class)
-            ->find($id)
-        ;
+            ->find($id);
 
         if (false === $dinosaur) {
             throw $this->createNotFoundException('The dinosaur you are looking for does not exists.');
